@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Sandy Kurniawan</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/stylish-portfolio.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,300italic,400italic,700italic" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+   
+</head>
+
+<body onload="init();">
+
+    <!-- Navigation -->
+    <a id="menu-toggle" href="#" class="btn btn-dark btn-lg toggle"><i class="fa fa-bars"></i></a>
+    <nav id="sidebar-wrapper">
+        <ul class="sidebar-nav">
+            <a id="menu-close" href="#" class="btn btn-light btn-lg pull-right toggle"><i class="fa fa-times"></i></a>
+            <li class="sidebar-brand">
+                <a href="#top" onclick=$("#menu-close").click();>Option</a>
+            </li>
+            <li>
+                <a href="#top" onclick=$("#menu-close").click();>Home</a>
+            </li>
+            <li>
+                <a href="#OSM" onclick=$("#menu-close").click();>OpenStreetMap</a>
+            </li>
+             <li>
+                <a href="#fiture" onclick=$("#menu-close").click();>Fiture</a>
+            </li>
+            <li>
+                <a href="#tileserver" onclick=$("#menu-close").click();>Server Ubuntu</a>
+            </li>
+            <li>
+                <a href="https://codeload.github.com/sandykurniawan19/sandykurniawan19.github.io/zip/master" onclick=$("#menu-close").click();>Download</a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Header -->
+    <header id="top" class="header">
+        <div class="text-vertical-center">
+            <h1>Sandy Kurniawan</h1>
+            <h3>Bandar Lampung University</h3>
+            <br>
+        </div>
+    </header>
+
+    <!-- About -->
+    <section id="OSM" class="about">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h2 class="text-center"><a href="https://switch2osm.org/serving-tiles/manually-building-a-tile-server-14-04/" >Manually building a tile server (14.04)</a></h2>
+                    <p>The OSM tile server stack is a collection of programs and libraries that work together to create a tile server. As so often with OpenStreetMap, there are many ways to achieve this goal and nearly all of the components have alternatives that have various specific advantages and disadvantages. This tutorial describes the most standard version that is also used on the main OpenStreetMap.org tile server.
+
+It consists of 5 main components: Mod_tile, renderd, mapnik, osm2pgsql and a postgresql/postgis database. Mod_tile is an apache module, that serves cached tiles and decides which tiles need re-rendering – either because they are not yet cached or because they are outdated. Renderd provides a priority queueing system for rendering requests to manage and smooth out the load from rendering requests. Mapnik is the software library that does the actual rendering and is used by renderd.
+
+In order to build these components, a variety of dependencies need to be installed first:</p>
+                    <pre> sudo apt-get install libboost-all-dev subversion git-core tar unzip wget bzip2 build-essential autoconf libtool libxml2-dev libgeos-dev libgeos++-dev libpq-dev libbz2-dev libproj-dev munin-node munin libprotobuf-c0-dev protobuf-c-compiler libfreetype6-dev libpng12-dev libtiff4-dev libicu-dev libgdal-dev libcairo-dev libcairomm-1.0-dev apache2 apache2-dev libagg-dev liblua5.2-dev ttf-unifont lua5.1 liblua5.1-dev libgeotiff-epsg node-carto</pre>
+                    <h3>Installing postgresql / postgis</h3>
+                    <p>On Ubuntu there are pre-packaged versions of both postgis and postgresql, so these can simply be installed via the Ubuntu package manager.</p>
+                    <pre>sudo apt-get install postgresql postgresql-contrib postgis postgresql-9.3-postgis-2.1</pre>
+                    <p>Now you need to create a postgis database. The defaults of various programs assume the database is called gis and we will use the same convention in this tutorial, although this is not necessary. Substitute your username for username in the two places below. This should be the username that will render maps with Mapnik.</p>
+                    <pre>sudo -u postgres -i 
+                    createuser username # answer yes for superuser (although this isn't strictly necessary)
+                    createdb -E UTF8 -O username gis
+                    exit</pre>
+                    <p>Create a Unix user for this user, too, choosing a password when prompted:</p>
+                    <pre>sudo useradd -m username
+sudo passwd username</pre>
+                    <p>Set up PostGIS on the PostgreSQL database (again, substitute your username for username below):</p>
+                    <pre>sudo -u postgres psql
+\c gis
+CREATE EXTENSION postgis;
+ALTER TABLE geometry_columns OWNER TO username;
+ALTER TABLE spatial_ref_sys OWNER TO username;
+\q
+exit</pre>
+                    <h3>Installing osm2pgsql<h3>
+                    <p>osm2pgsql is under active development and is best compiled from source.</p>
+                    <pre>mkdir ~/src
+cd ~/src
+git clone git://github.com/openstreetmap/osm2pgsql.git
+cd osm2pgsql
+./autogen.sh
+./configure
+make
+sudo make install</pre>
+                    <h3>Install Mapnik library</h3>
+                    <p>Next, we need to install the Mapnik library. Mapnik is used to render the OpenStreetMap data into the tiles used for an OpenLayers web map.
+
+Build the Mapnik library from source:</p>
+                    <pre>cd ~/src
+git clone git://github.com/mapnik/mapnik
+cd mapnik
+git branch 2.2 origin/2.2.x
+git checkout 2.2
+
+python scons/scons.py configure INPUT_PLUGINS=all OPTIMIZATION=3 SYSTEM_FONTS=/usr/share/fonts/truetype/
+make
+sudo make install
+sudo ldconfig</pre>
+                    <p>Verify that Mapnik has been installed correctly:</p>
+                    <pre>python
+>>> import mapnik
+>>></pre>   
+                    <p>If python replies with the second chevron prompt >>> and without errors, then Mapnik library was found by Python. Congratulations! You can leave Python with this command:</p>
+                    <pre>>>> quit()</pre>
+                    <h3>Install mod_tile and renderd</h3>
+                    <p>Compile the mod_tile source code:</p>
+                    <pre>cd ~/src
+git clone git://github.com/openstreetmap/mod_tile.git
+cd mod_tile
+./autogen.sh
+./configure
+make
+sudo make install
+sudo make install-mod_tile
+sudo ldconfig</pre>
+                    
+
+
+                </div>
+            </div>
+            <!-- /.row -->
+        </div>
+        <!-- /.container -->
+    </section>
+    
+<!-- Services -->
+    <!-- The circle icons use Font Awesome's stacked icon classes. For more information, visit http://fontawesome.io/examples/ -->
+
+
+   
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10 col-lg-offset-1 text-center">
+                    <h4><strong>Universitas Bandar Lampung</strong>
+                    </h4>
+                    <p>Lampung , Indonesia</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fa fa-envelope-o fa-fw"></i> <a href="sandy Kurniawan:sandy.13421065@student.ubl.ac.id">sandy.13421065@student.ubl.ac.id</a>
+                        </li>
+                    </ul>
+                    <br>
+                    <ul class="list-inline">
+                        <li>
+                            <a href="https://github.com/sandykurniawan19"><i class="fa fa-github fa-fw fa-3x"></i></a>
+                            <p>GitHub</p>
+                        </li>
+                        <li>
+                            <a href="http://stackoverflow.com/users/6907326/sandy-kurniawan"><i class="fa fa-stack-overflow fa-fw fa-3x"></i></a>
+                            <p>Stack Over Flow</p>
+                        </li>
+                        <li>
+                            <a href="https://projecteuler.net/profile/sandykurniawann19.png"><img src="img/projecteuler.png" style="width: 90px;height: 40px;"/></a>
+                             <p>Project Euler</p>
+                        </li>
+                        <li>
+                            <a href="https://id.wikipedia.org/wiki/Pengguna:Sandykurniawann19"><i class="fa fa-wikipedia-w fa-fw fa-3x" aria-hidden="true"></i></a>
+                             <p>Wikipedia</p>
+                        </li>
+                    </ul>
+                    <hr class="small">
+                    <p class="text-muted">Copyright &copy; Sandy Kurniawan</p>
+                </div>
+            </div>
+        </div>
+        <a id="to-top" href="#top" class="btn btn-dark btn-lg"><i class="fa fa-chevron-up fa-fw fa-1x"></i></a>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="js/bootstrap.min.js"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script>
+    // Closes the sidebar menu
+    $("#menu-close").click(function(e) {
+        e.preventDefault();
+        $("#sidebar-wrapper").toggleClass("active");
+    });
+    // Opens the sidebar menu
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#sidebar-wrapper").toggleClass("active");
+    });
+    // Scrolls to the selected menu item on the page
+    $(function() {
+        $('a[href*=#]:not([href=#],[data-toggle],[data-target],[data-slide])').click(function() {
+            if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') || location.hostname == this.hostname) {
+                var target = $(this.hash);
+                target = target.length ? target : $('[name=' + this.hash.slice(1) + ']');
+                if (target.length) {
+                    $('html,body').animate({
+                        scrollTop: target.offset().top
+                    }, 1000);
+                    return false;
+                }
+            }
+        });
+    });
+    //#to-top button appears after scrolling
+    var fixed = false;
+    $(document).scroll(function() {
+        if ($(this).scrollTop() > 250) {
+            if (!fixed) {
+                fixed = true;
+                // $('#to-top').css({position:'fixed', display:'block'});
+                $('#to-top').show("slow", function() {
+                    $('#to-top').css({
+                        position: 'fixed',
+                        display: 'block'
+                    });
+                });
+            }
+        } else {
+            if (fixed) {
+                fixed = false;
+                $('#to-top').hide("slow", function() {
+                    $('#to-top').css({
+                        display: 'none'
+                    });
+                });
+            }
+        }
+    });
+    </script>
+
+</body>
+
+</html>
